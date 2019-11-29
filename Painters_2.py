@@ -31,15 +31,15 @@ def main():
             print("Couldn't open file %s" % filename)
         else:
             if counter < 100:
-                training_image_list.append(cv2.resize(im, (150,150), interpolation=cv2.INTER_CUBIC))
+                training_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
                 training_label_list.append(0)
                 counter += 1
             elif counter < 120:
-                validation_image_list.append(cv2.resize(im, (150,150), interpolation=cv2.INTER_CUBIC))
+                validation_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
                 validation_label_list.append(0)
                 counter += 1
             else:
-            	test_image_list.append(cv2.resize(im, (150,150), interpolation=cv2.INTER_CUBIC))
+            	test_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
 
 
     counter = 0
@@ -50,18 +50,18 @@ def main():
             print("Couldn't open file %s" % filename)
         else:
             if counter < 100:
-                training_image_list.append(cv2.resize(im, (150,150), interpolation=cv2.INTER_CUBIC))
+                training_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
                 training_label_list.append(1)
                 counter += 1
             elif counter < 120:
-                validation_image_list.append(cv2.resize(im, (150,150), interpolation=cv2.INTER_CUBIC))
+                validation_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
                 validation_label_list.append(1)
                 counter += 1
             else:
-            	test_image_list.append(cv2.resize(im, (150,150), interpolation=cv2.INTER_CUBIC))
+            	test_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
 
-    instance1 = test_image_list[30]
-    instance2 = test_image_list[34]
+    instance1 = test_image_list[3]
+    instance2 = test_image_list[6]
 
     print('-----------------------------------------------------------------')
     print('\nShow Bruegel Painting.\n')
@@ -83,13 +83,13 @@ def main():
     test_image_list = np.array(test_image_list)
 
     model = models.Sequential()
-    model.add(layers.Conv2D(32, (3, 3), activation='relu', 	input_shape=(150, 150, 3)))
+    model.add(layers.Conv2D(16, (3, 3), activation='relu', 	input_shape=(250, 250, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(layers.Conv2D(16, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.Conv2D(16, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.Conv2D(16, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.Flatten())
     model.add(layers.Dropout(0.5))									# To avoid overfitting.
@@ -102,8 +102,8 @@ def main():
     print('-----------------------------------------------------------------')
     print('\nTraining the network.\n')
 
-    batch_size = 3
-    epochs = 25
+    batch_size = 40
+    epochs = 50
 
     history = model.fit(training_image_list, 
                         training_label_list,

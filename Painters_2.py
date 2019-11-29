@@ -7,13 +7,13 @@ from keras import optimizers
 
 import matplotlib.pylab as plt
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import cv2
 from PIL import Image
 import glob
 
+
 def main():
-  
     print('-----------------------------------------------------------------')
     print('\nGetting painting images from folders.\n')
 
@@ -23,43 +23,31 @@ def main():
     validation_label_list = []
     test_image_list = []
 
-    counter = 0
+    imageSize = 150
+    painters = ["Bruegel", "Picasso"]
 
-    for filename in glob.glob('Paintings/Bruegel/*'):
-        im = cv2.imread(filename)
-        if im is None:
-            print("Couldn't open file %s" % filename)
-        else:
-            if counter < 100:
-                training_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
-                training_label_list.append(0)
-                counter += 1
-            elif counter < 120:
-                validation_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
-                validation_label_list.append(0)
-                counter += 1
+    def fillArray(painter: painters, i: int):
+        counter = 0
+        for filename in glob.glob('Paintings/' + painter + '/*'):
+            im = cv2.imread(filename)
+            if im is None:
+                print("Couldn't open file %s" % filename)
             else:
-            	test_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
+                if counter < 100:
+                    training_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                    training_label_list.append(i)
+                    counter += 1
+                elif counter < 120:
+                    validation_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                    validation_label_list.append(i)
+                    counter += 1
+                else:
+                    test_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
 
+    for i in range(len(painters)):
+        fillArray(painters[i], i)
 
-    counter = 0
-
-    for filename in glob.glob('Paintings/Picasso/*'):
-        im = cv2.imread(filename)
-        if im is None:
-            print("Couldn't open file %s" % filename)
-        else:
-            if counter < 100:
-                training_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
-                training_label_list.append(1)
-                counter += 1
-            elif counter < 120:
-                validation_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
-                validation_label_list.append(1)
-                counter += 1
-            else:
-            	test_image_list.append(cv2.resize(im, (250,250), interpolation=cv2.INTER_CUBIC))
-
+    print(training_image_list)
     instance1 = test_image_list[3]
     instance2 = test_image_list[6]
 
@@ -83,7 +71,7 @@ def main():
     test_image_list = np.array(test_image_list)
 
     model = models.Sequential()
-    model.add(layers.Conv2D(16, (3, 3), activation='relu', 	input_shape=(250, 250, 3)))
+    model.add(layers.Conv2D(16, (3, 3), activation='relu', input_shape=(imageSize, imageSize, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.Conv2D(16, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
@@ -92,12 +80,12 @@ def main():
     model.add(layers.Conv2D(16, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.Flatten())
-    model.add(layers.Dropout(0.5))									# To avoid overfitting.
+    model.add(layers.Dropout(0.5))  # To avoid overfitting.
     model.add(layers.Dense(512, activation='relu'))
     model.add(layers.Dense(1, activation='sigmoid'))
 
     print('COMPILING THE MODEL.')
-    model.compile(loss='binary_crossentropy',optimizer=optimizers.RMSprop(lr=1e-4),metrics=['acc'])
+    model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-4), metrics=['acc'])
 
     print('-----------------------------------------------------------------')
     print('\nTraining the network.\n')
@@ -105,14 +93,14 @@ def main():
     batch_size = 40
     epochs = 50
 
-    history = model.fit(training_image_list, 
+    history = model.fit(training_image_list,
                         training_label_list,
                         batch_size=batch_size,
                         epochs=epochs,
                         verbose=2,
                         validation_data=(validation_image_list, validation_label_list))
 
-     ############# TESTING
+    ############# TESTING
     #
     # Evaluate the model on the test data.
 
@@ -132,7 +120,7 @@ def main():
     # Show the inputs and predicted outputs.
     plt.imshow(instance1)
     plt.show()
-    
+
     print("Predicted = %s" % new_labels[0])
 
     plt.imshow(instance2)
@@ -156,5 +144,6 @@ def main():
     plt.legend()
     plt.show()
 
+
 if __name__ == "__main__":
-  	main()
+    main()

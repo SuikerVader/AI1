@@ -24,7 +24,7 @@ def main():
     test_image_list = []
 
     imageSize = 150
-    painters = ["Bruegel", "Picasso"]
+    painters = ["RubensAll", "PicassoAll"]
 
     def fillArray(painter: painters, i: int):
         counter = 0
@@ -33,26 +33,25 @@ def main():
             if im is None:
                 print("Couldn't open file %s" % filename)
             else:
-                if counter < 100:
+                if counter < 350:
                     training_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
                     training_label_list.append(i)
                     counter += 1
-                elif counter < 120:
+                elif counter < 410:
                     validation_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
                     validation_label_list.append(i)
                     counter += 1
-                else:
+                elif counter < 470:
                     test_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
 
     for i in range(len(painters)):
         fillArray(painters[i], i)
 
-    print(training_image_list)
-    instance1 = test_image_list[3]
-    instance2 = test_image_list[6]
+    instance1 = test_image_list[0]
+    instance2 = test_image_list[72]
 
     print('-----------------------------------------------------------------')
-    print('\nShow Bruegel Painting.\n')
+    print('\nShow Rubens Painting.\n')
 
     imgplot = plt.imshow(training_image_list[0])
     plt.show()
@@ -60,7 +59,7 @@ def main():
     print('-----------------------------------------------------------------')
     print('\nShow Picasso Painting.\n')
 
-    imgplot = plt.imshow(training_image_list[100])
+    imgplot = plt.imshow(training_image_list[500])
     plt.show()
 
     print('\n==================================================================')
@@ -85,12 +84,12 @@ def main():
     model.add(layers.Dense(1, activation='sigmoid'))
 
     print('COMPILING THE MODEL.')
-    model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-4), metrics=['acc'])
+    model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-5), metrics=['acc'])
 
     print('-----------------------------------------------------------------')
     print('\nTraining the network.\n')
 
-    batch_size = 40
+    batch_size = 25
     epochs = 50
 
     history = model.fit(training_image_list,
@@ -126,7 +125,7 @@ def main():
     plt.imshow(instance2)
     plt.show()
 
-    print("Predicted = %s" % new_labels[20])
+    print("Predicted = %s" % new_labels[72])
 
     acc = history.history['acc']
     val_acc = history.history['val_acc']

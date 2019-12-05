@@ -12,6 +12,12 @@ import cv2
 from PIL import Image
 import glob
 
+import random
+from scipy import ndarray
+import skimage as sk
+from skimage import transform
+from skimage import util
+
 training_image_list = []
 training_label_list = []
 validation_image_list = []
@@ -26,11 +32,21 @@ validation_percent = 0.15
 test_percent = 0.15
 
 test_painting1 = 0
-test_painting2 = 80
+test_painting2 = 100
 
 painters = ["RubensAll", "PicassoAll"]
 
 model = models.Sequential()
+
+def random_rotation(image):
+    random_degree = random.uniform(-25, 25)
+    return sk.transform.rotate(image, random_degree)
+
+def random_noise(image):
+    return sk.util.random_noise(image)
+
+def horizontal_flip(image):
+    return image[:, ::-1]
 
 def plot_graphs():
     global history
@@ -61,10 +77,22 @@ def fillArray(painter: painters, i: int):
         else:
             if counter < totalImages * training_percent:
                 training_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                training_image_list.append(cv2.resize(random_rotation(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                training_image_list.append(cv2.resize(random_noise(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                training_image_list.append(cv2.resize(horizontal_flip(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                training_label_list.append(i)
+                training_label_list.append(i)
+                training_label_list.append(i)
                 training_label_list.append(i)
                 counter += 1
             elif counter < totalImages * (training_percent + validation_percent):
                 validation_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                validation_image_list.append(cv2.resize(random_rotation(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                validation_image_list.append(cv2.resize(random_noise(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                validation_image_list.append(cv2.resize(horizontal_flip(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
+                validation_label_list.append(i)
+                validation_label_list.append(i)
+                validation_label_list.append(i)
                 validation_label_list.append(i)
                 counter += 1
             elif counter < totalImages * (training_percent + validation_percent + test_percent):
@@ -75,13 +103,13 @@ def create_model():
     print('\n==================================================================')
     print('MAKING THE MODEL.')
 
-    model.add(layers.Conv2D(16, (3, 3), activation='relu', input_shape=(imageSize, imageSize, 3)))
+    model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(imageSize, imageSize, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(16, (3, 3), activation='relu'))
+    model.add(layers.Conv2D(32, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(16, (3, 3), activation='relu'))
+    model.add(layers.Conv2D(32, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(16, (3, 3), activation='relu'))
+    model.add(layers.Conv2D(32, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.Flatten())
     model.add(layers.Dropout(0.5))  # To avoid overfitting.
@@ -97,7 +125,7 @@ def train_model():
     print('\nTraining the network.\n')
 
     batch_size = 25
-    epochs = 250
+    epochs = 100
 
     global history
 

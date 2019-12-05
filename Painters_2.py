@@ -55,20 +55,21 @@ def plot_graphs():
     loss = history.history['loss']
     val_loss = history.history['val_loss']
     epochs = range(1, len(acc) + 1)
-    plt.plot(epochs, acc, 'bo', label='Training acc')
-    plt.plot(epochs, val_acc, 'b', label='Validation acc')
+    plt.plot(epochs, smooth_curve(acc), 'bo', label='Training acc')
+    plt.plot(epochs, smooth_curve(val_acc), 'b', label='Validation acc')
     plt.title('Training and validation accuracy')
     plt.legend()
     plt.figure()
-    plt.plot(epochs, loss, 'bo', label='Training loss')
-    plt.plot(epochs, val_loss, 'b', label='Validation loss')
+    plt.plot(epochs, smooth_curve(loss), 'bo', label='Training loss')
+    plt.plot(epochs, smooth_curve(val_loss), 'b', label='Validation loss')
     plt.title('Training and validation loss')
     plt.legend()
     plt.show()
 
+
 def fillArray(painter: painters, i: int):
     print('-----------------------------------------------------------------')
-    print('\nGetting painting images from folders.\n')
+    print('\nGetting painting images from folder.' + painter + '\n')
     counter = 0
     for filename in glob.glob('Paintings/' + painter + '/*'):
         im = cv2.imread(filename)
@@ -116,9 +117,11 @@ def create_model():
     model.add(layers.Dense(512, activation='relu'))
     model.add(layers.Dense(1, activation='sigmoid'))
 
+
 def compile_model():
     print('COMPILING THE MODEL.')
     model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-4), metrics=['acc'])
+
 
 def train_model():
     print('-----------------------------------------------------------------')
@@ -138,7 +141,7 @@ def train_model():
 
 
 def test_model(instance1, instance2):
-	############# TESTING
+    ############# TESTING
     #
     # Evaluate the model on the test data.
 
@@ -146,6 +149,8 @@ def test_model(instance1, instance2):
     print('\nTest the network.\n')
 
     test_loss, test_acc = model.evaluate(validation_image_list, validation_label_list)
+
+    model.summary()
     print('\nTest Loss:', test_loss)
     print('Test Accuracy:', test_acc)
 
@@ -167,9 +172,7 @@ def test_model(instance1, instance2):
     print("Predicted = %s" % new_labels[test_painting2])
 
 
-
 def main():
-
     for i in range(len(painters)):
         fillArray(painters[i], i)
 
@@ -177,10 +180,10 @@ def main():
     global validation_image_list
     global test_image_list
 
-    training_image_list = np.array((training_image_list))
+    training_image_list = np.array(training_image_list)
     validation_image_list = np.array(validation_image_list)
     test_image_list = np.array(test_image_list)
-        
+
     instance1 = test_image_list[test_painting1]
     instance2 = test_image_list[test_painting2]
 
@@ -189,7 +192,7 @@ def main():
     train_model()
     test_model(instance1, instance2)
     plot_graphs()
-    
+
 
 if __name__ == "__main__":
     main()

@@ -11,12 +11,15 @@ import pandas as pd
 import cv2
 from PIL import Image
 import glob
+import os.path
 
 import random
 from scipy import ndarray
 import skimage as sk
 from skimage import transform
 from skimage import util
+
+from sklearn.externals import joblib 
 
 training_image_list = []
 training_label_list = []
@@ -30,9 +33,6 @@ totalImages = 470
 training_percent = 0.7
 validation_percent = 0.15
 test_percent = 0.15
-
-test_painting1 = 0
-test_painting2 = 100
 
 painters = ["RubensAll", "PicassoAll"]
 
@@ -55,13 +55,13 @@ def plot_graphs():
     loss = history.history['loss']
     val_loss = history.history['val_loss']
     epochs = range(1, len(acc) + 1)
-    plt.plot(epochs, smooth_curve(acc), 'bo', label='Training acc')
-    plt.plot(epochs, smooth_curve(val_acc), 'b', label='Validation acc')
+    plt.plot(epochs, acc, 'bo', label='Training acc')
+    plt.plot(epochs, val_acc, 'b', label='Validation acc')
     plt.title('Training and validation accuracy')
     plt.legend()
     plt.figure()
-    plt.plot(epochs, smooth_curve(loss), 'bo', label='Training loss')
-    plt.plot(epochs, smooth_curve(val_loss), 'b', label='Validation loss')
+    plt.plot(epochs, loss, 'bo', label='Training loss')
+    plt.plot(epochs, val_loss, 'b', label='Validation loss')
     plt.title('Training and validation loss')
     plt.legend()
     plt.show()
@@ -81,20 +81,16 @@ def fillArray(painter: painters, i: int):
                 training_image_list.append(cv2.resize(random_rotation(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
                 training_image_list.append(cv2.resize(random_noise(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
                 training_image_list.append(cv2.resize(horizontal_flip(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
-                training_label_list.append(i)
-                training_label_list.append(i)
-                training_label_list.append(i)
-                training_label_list.append(i)
+                for x in range(4):
+                    training_label_list.append(i)
                 counter += 1
             elif counter < totalImages * (training_percent + validation_percent):
                 validation_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
                 validation_image_list.append(cv2.resize(random_rotation(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
                 validation_image_list.append(cv2.resize(random_noise(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
                 validation_image_list.append(cv2.resize(horizontal_flip(im), (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
-                validation_label_list.append(i)
-                validation_label_list.append(i)
-                validation_label_list.append(i)
-                validation_label_list.append(i)
+                for x in range(4):
+                    validation_label_list.append(i)
                 counter += 1
             elif counter < totalImages * (training_percent + validation_percent + test_percent):
                 test_image_list.append(cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC))
@@ -120,7 +116,7 @@ def create_model():
 
 def compile_model():
     print('COMPILING THE MODEL.')
-    model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-4), metrics=['acc'])
+    model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-5), metrics=['acc'])
 
 
 def train_model():
@@ -128,7 +124,7 @@ def train_model():
     print('\nTraining the network.\n')
 
     batch_size = 25
-    epochs = 100
+    epochs = 250
 
     global history
 
@@ -139,8 +135,10 @@ def train_model():
                         verbose=2,
                         validation_data=(validation_image_list, validation_label_list))
 
+    joblib.dump(model, 'saved_model.pkl') 
 
-def test_model(instance1, instance2):
+
+def test_model():
     ############# TESTING
     #
     # Evaluate the model on the test data.
@@ -160,39 +158,74 @@ def test_model(instance1, instance2):
     # Get predicted labels.
     new_labels = model.predict_classes(test_image_list)
 
-    # Show the inputs and predicted outputs.
-    plt.imshow(instance1)
-    plt.show()
+    
 
-    print("Predicted = %s" % new_labels[test_painting1])
+    print(new_labels)
 
-    plt.imshow(instance2)
-    plt.show()
-
-    print("Predicted = %s" % new_labels[test_painting2])
+def predict_painting(model):
+	global painters
+	total = 0
+	right = 0
+	user_input = ("Geef de naam van een schilderij om te raden (Typ stop om te stoppen): ")
+	while True:
+		found = False
+		user_input = input("Geef de naam van een schilderij om te raden (Typ stop om te stoppen): ")
+		if user_input.lower() == "stop":
+			if total != 0:
+				print("Juist geraden: " + str((right/total)*100) + "%")
+			break;
+		for painter in painters:
+			prefix = 'Paintings/' + painter + '\\'
+			for filename in glob.glob(prefix + '*'):
+				name_painting = filename.replace(prefix, '').replace('.jpg','').replace('.jpeg','').replace('.png','')
+				if name_painting.lower() == user_input.lower():
+					found = True
+					im = cv2.imread(filename)
+					imgplot = plt.imshow(im)
+					plt.show()
+					im = cv2.resize(im, (imageSize, imageSize), interpolation=cv2.INTER_CUBIC)
+					img_tensor = np.expand_dims(im, axis=0)
+					prediction = model.predict_classes(img_tensor)
+					total += 1
+					if prediction == 1:
+						print("Het model is " + str(model.predict(img_tensor) * 100)[2:-2] + "% zeker dat het schilderij van Picasso is.")
+					else:
+						print("Het model is " + str((1 - model.predict(img_tensor)) * 100)[2:-2] + "% zeker dat het schilderij van Rubens is.")
+					verificatie = ""
+					while True:
+						verificatie = input("Heeft het model het juist geraden? (typ ja of nee)")
+						if verificatie.lower() == "ja":
+							right += 1
+							print("Juist geraden: " + str((right/total)*100) + "%")
+							break
+						elif verificatie.lower() == "nee":
+							print("Juist geraden: " + str((right/total)*100) + "%")
+							break
+					
+		if not found:
+			print("Geen schilderij met naam " + user_input + " gevonden. Probeer het nog een keer!")
 
 
 def main():
-    for i in range(len(painters)):
-        fillArray(painters[i], i)
-
-    global training_image_list
-    global validation_image_list
-    global test_image_list
-
-    training_image_list = np.array(training_image_list)
-    validation_image_list = np.array(validation_image_list)
-    test_image_list = np.array(test_image_list)
-
-    instance1 = test_image_list[test_painting1]
-    instance2 = test_image_list[test_painting2]
-
-    create_model()
-    compile_model()
-    train_model()
-    test_model(instance1, instance2)
-    plot_graphs()
-
+	global model
+	if os.path.isfile('saved_model.pkl'):
+		model = joblib.load('saved_model.pkl')
+	else:
+		for i in range(len(painters)):
+			fillArray(painters[i], i)
+		global training_image_list
+		global validation_image_list
+		global test_image_list
+		training_image_list = np.array(training_image_list)
+		validation_image_list = np.array(validation_image_list)
+		test_image_list = np.array(test_image_list)
+		create_model()
+		compile_model()
+		train_model()
+		plot_graphs()
+		test_model()
+	predict_painting(model)
+    
 
 if __name__ == "__main__":
     main()

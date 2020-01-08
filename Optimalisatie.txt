@@ -1,0 +1,41 @@
+Zo hebben we het model voor de 2 schilders geoptimaliseerd:
+
+##Run 1: 
+- 470 images 
+- 4 layers -> 16 
+- imagesize = 150
+- batchsize = 25
+- 20 epochs
+- **Results TestLoss: 0.466243985253326 TestAcc: 0.8661971688270569**
+
+##Run 2:
+- 470 images
+- 4 layers -> 32->64->128->128
+- imagesize = 150
+- batchsize = 25
+- 150 epochs 
+- **Resluts Testloss: 1.7494125240285632 TestAcc: 0.8521126508712769**
+
+##Run 3: 
+- 470 images
+- 4 layers -> 32->64->128->128
+- imagesize = 150
+- batchsize = 30
+- 20 epochs 
+- **Resluts Testloss: 0.2664450940111993 TestAcc: 0.8732394576072693**
+
+##Run 4:
+- 470 images per painter
+- 4 Conv2D layers -> 32->32->32->32
+- 1 Dense layer -> 512
+- imagesize = 150
+- learning rate = 1e-5
+- batch size = 25
+- epochs = 250
+- **Results Testloss: 0.1887533654820018 TestAcc: 0.9378874516371057**
+
+We hebben vooral layers verwijderd en toegevoegd, de lagen van de layers aangepast, de learning rate verhoogd, de batch size en epochs veranderd,..
+totdat we een model kregen dat bijna 94 % accuraat is.
+
+Deze code hebben we dan gebruikt en de laatste layer veranderd naar softmax om zo een model te creeëren voor 4 schilders te classificeren.
+We kregen bij het model voor 4 schilders een accuraatheid van 91%.

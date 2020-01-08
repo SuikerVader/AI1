@@ -1,28 +1,11 @@
-Write down results so we can track what were the best models
-
-##Run 1: 
-- 470 images 
-- 4 layers -> 16 
-- imagesize = 150
-- batchsize = 25
-- 20 epochs
-- **Results TestLoss: 0.466243985253326 TestAcc: 0.8661971688270569**
-
-##Run 2:
-- 470 images
-- 4 layers -> 32->64->128->128
-- imagesize = 150
-- batchsize = 25
-- 150 epochs 
-- **Resluts Testloss: 1.7494125240285632 TestAcc: 0.8521126508712769**
-
-##Run 3: 
-- 470 images
-- 4 layers -> 32->64->128->128
-- imagesize = 150
-- batchsize = 30
-- 20 epochs 
-- **Resluts Testloss: 0.2664450940111993 TestAcc: 0.8732394576072693**
-
-
+We hebben 2 verschillende scriptjes, 1 voor 2 schilders en 1 voor 4 schilders:  
+ - Painters_2.py met het daarbijhorende opgeslagen model saved_model.pkl  
+ - Painters_4_FINAL.py met het daarbijhorende opgeslagen model saved_model_4_painters.pkl  
  
+De images van de schilderijen worden verwacht in de map Paintings.  
+Daar zijn 4 verschillende mappen waar de schilderijen bij de juiste schilder moeten geplaatst worden.  
+Als de mappen gevuld zijn dan kan het model beginnen met trainen.  
+Bij het examen wordt het opgeslagen model gebruikt dus kan men via de console de naam van een schilderij  
+opgeven in een van de mappen en dan zal het model zeggen wie het heeft geschilderd.  
+Bv: Een schilderij in de map PicassoAll met de naam a-boy-with-pipe-1905.jpg kan je testen door in de console a-boy-with-pipe-1905 op te geven. Dus zonder de extensie.  
+Om het testen te stoppen en de finale score te weergeven kan je 'stop' ingeven in de console.
